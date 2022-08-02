@@ -1,0 +1,16 @@
+.slider {
+  margin-top: 2rem;
+//   .slick-arrow {
+//     display: none !important;
+//   }
+.slick-next:before, .slick-prev:before {
+    color: black !important;
+}
+  .slick-slider {
+    display: flex;
+    justify-content: center;
+    .slick-list {
+      width: 1200px;
+    }
+  }
+}
