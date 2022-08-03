@@ -1,30 +1,36 @@
 import Head from "next/head";
-import DogAPI from "../services/dog/index.";
 import { useEffect, useState } from "react";
 import DogImage from "../src/components/Image";
 import { Oval } from "react-loader-spinner";
 import ListDogImages from "../src/components/ListImages";
+import fetch from '../utils/api';
 
 const Home = () => {
-  const [mainImage, setMainImage] = useState("");
-  const [linkedImage, setLinkedImage] = useState();
+  const [selectedImage, setSelectedImage] = useState({});
   const [isLoading, setIsLoading] = useState(true);
-
-  const fetchDog = async () => {
-    setIsLoading(true);
-    try {
-      const promiseArray = [DogAPI.getDogImage(), DogAPI.getDogImage(10)];
-      const response = await Promise.all(promiseArray);
-      setMainImage(response[0].message);
-      setLinkedImage(response[1].message);
-      setIsLoading(false);
-    } catch (error) {
-      console.log(error);
-      setIsLoading(false);
-    }
-  };
+  const [list, setList] = useState([]);
 
   useEffect(() => {
+    const fetchDog = async () => {
+      setIsLoading(true);
+      try {
+        const breedsResponse = await fetch.get('breeds/list/all');
+        const breeds = Object.keys(breedsResponse.message);
+        const promises = breeds.map(breed => fetch.get(`breed/${breed}/images/random`))
+        const dogImages = await Promise.all(promises);
+        const result = breeds.map((breed, idx) => ({
+          breed,
+          image: dogImages[idx].message
+        }));
+        setSelectedImage(result[0]);
+        setList(result);
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
     fetchDog();
   }, []);
 
@@ -50,9 +56,9 @@ const Home = () => {
         {!isLoading ? (
           <div>
             <div className="d-flex justify-content-center">
-              <DogImage src={mainImage} />
+              <DogImage src={selectedImage.image} breed={selectedImage.breed} />
             </div>
-            <ListDogImages images={linkedImage} />
+            <ListDogImages images={list} onSelect={(image) => setSelectedImage(image)} />
           </div>
         ) : (
           <div key={0} className={`mt-3 d-flex justify-content-center w-100 text-center`}>
